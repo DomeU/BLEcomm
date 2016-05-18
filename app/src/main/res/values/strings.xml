@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">BLEcomm</string>
+    <string name="btn_text">Send</string>
+</resources>
