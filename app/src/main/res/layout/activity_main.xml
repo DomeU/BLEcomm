@@ -12,14 +12,16 @@
         android:layout_weight="0.69"
         android:layout_gravity="center"
         android:textSize="20dp"
-        android:textIsSelectable="false" />
+        android:textIsSelectable="false"
+        android:scrollIndicators="top" />
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/editText"
         android:layout_weight="0.07"
-        android:enabled="true" />
+        android:enabled="true"
+        android:focusable="true" />
 
     <Button
         android:layout_width="179dp"

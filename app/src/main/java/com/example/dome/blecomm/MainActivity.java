@@ -122,7 +122,7 @@ public class MainActivity extends Activity {
         // Grab UI referenzes
         messages = (TextView) findViewById(R.id.textView);
         input = (EditText) findViewById(R.id.editText);
-        adapter = BluetoothAdapter.getDefaultAdapter();
+        adapter = BluetoothAdapter.getDefaultAdapter(); // DEPRECATED , new version requires API 21!
     }
 
     // OnResume, called right before UI is displayed.  Start the BTLE connection.
