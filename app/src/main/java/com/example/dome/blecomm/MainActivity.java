@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -15,7 +16,9 @@ import android.widget.TextView;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,7 +50,13 @@ public class MainActivity extends Activity {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
+            String request = characteristic.getStringValue(0);
             writeLine("Received: " + characteristic.getStringValue(0));
+            switch (request.charAt(0)){
+                case 'T': sendTime(request.substring(1));
+                case 'U': getUV(request.substring(1));
+            }
+
         }
 
         //Called when servies are discovered
@@ -166,6 +175,19 @@ public class MainActivity extends Activity {
         }
     }
 
+    //send data via tx TODO: create generic type / make sure ints wont be sent as strings (more data)
+    private boolean sendTX(String value){
+        // do nothing if message is empty or no device to send
+        if (tx == null || value == null || value.isEmpty()) return false;
+        // Update TX characteristic value.  Note the setValue overload that takes a byte array must be used.
+        tx.setValue(value.getBytes(Charset.forName("UTF-8")));
+        // write
+        if (gatt.writeCharacteristic(tx)) {
+            writeLine("sent: " +value);
+            return true;
+        } else return false;
+    }
+
 
     // Write some text to the messages text view.
     // Care is taken to do this on the main UI thread so writeLine can be called
@@ -178,6 +200,41 @@ public class MainActivity extends Activity {
                 messages.append("\n");
             }
         });
+    }
+
+    private boolean sendTime(String timeelement){
+        writeLine(timeelement);
+        if (timeelement.length() > 1) return false;
+
+        switch (timeelement.charAt(0)){
+            // millis to seconds to string and send it
+            case 't': {
+                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+                Date resultdate = new Date(System.currentTimeMillis());
+               writeLine(sdf.format(resultdate));
+                long millis = (long)(System.currentTimeMillis()/1000.0); return sendTX(Long.toString(millis));}
+            case 'c':{ writeLine(timeelement.substring(1));
+                if ((long)(System.currentTimeMillis()/1000.0) == Long.getLong(timeelement.substring(1)))
+                {
+                    // time is set correct, respond
+                    sendTX("c"); return true;
+                } else return false;
+                    }
+            default: return false;
+        }
+    }
+
+    // pares UV data , enter in database or display
+    private void getUV(String response){
+        switch (response.charAt(0)){
+            case 'u':{
+               // average UV data (time period see device) , store in database
+                float avgUV = Float.valueOf(response.substring(1));
+                // remember to save timestamp
+                writeLine(SimpleDateFormat.getDateTimeInstance().format(new Date(System.currentTimeMillis()))+ " : " + avgUV);
+            }
+            case 'm': // monitor -> display live ;
+        }
     }
 
 
